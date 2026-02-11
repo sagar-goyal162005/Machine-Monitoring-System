@@ -843,8 +843,10 @@ if __name__ == '__main__':
     else:
         print("[!] Some data files are missing. Dashboard may not display all data.")
     
+    port = int(os.getenv('PORT', '5000'))
+
     print()
-    print("[INFO] Dashboard URL: http://localhost:5000")
+    print(f"[INFO] Dashboard URL: http://localhost:{port}")
     print("[API] Endpoints:")
     print("      - GET /api/data?file=sensor_data")
     print("      - GET /api/data?file=alerts")
@@ -863,7 +865,7 @@ if __name__ == '__main__':
     # Run server
     app.run(
         host='0.0.0.0',
-        port=5000,
+        port=port,
         debug=True,
         use_reloader=False
     )

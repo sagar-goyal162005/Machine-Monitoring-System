@@ -39,6 +39,30 @@ Runtime components:
 - **Front-end SPA** loads data from REST endpoints and re-renders pages on navigation and factory changes.
 - **CSV-backed storage** keeps this project simple and portable (no DB required).
 
+## Deploy on Render (Dashboard)
+
+This repo includes a ready-to-use Render blueprint for deploying the Flask dashboard.
+
+Files used:
+- `render.yaml` (Render blueprint)
+- `requirements.render.txt` (dashboard-only dependencies)
+
+Steps (UI method):
+1. Push this repo to GitHub.
+2. In Render: **New** -> **Web Service** -> connect your GitHub repo.
+3. Set:
+  - **Build Command:** `pip install -r requirements.render.txt`
+  - **Start Command:** `gunicorn web_server:app --bind 0.0.0.0:$PORT`
+4. Deploy.
+
+Notes:
+- Render sets `PORT` automatically. `web_server.py` also honors `PORT` when running directly.
+- This dashboard reads from CSV files under `data/` and `output/`. If you use endpoints that write data (for example `POST /api/add-reading`), you will likely want a **persistent disk** (Render feature) or move storage to a database/storage service, otherwise changes may be lost on redeploy/restart.
+- This repo keeps `output/alerts_windows.csv` and `output/visualizations/*` tracked so the dashboard has demo alerts/charts immediately after deploy.
+
+Pathway / streaming pipeline:
+- The Pathway-based streaming pipeline (`main.py` and `modules/*`) is separate from the dashboard runtime. Deploy it as a separate long-running worker only after confirming the correct `pathway` dependency/version for your Python runtime.
+
 ## Quick Start
 
 ### 1. Install Dependencies

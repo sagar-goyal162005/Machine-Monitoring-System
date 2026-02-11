@@ -19,7 +19,11 @@ Thumbs.db
 .vscode/
 
 # Generated outputs (regenerate via scripts)
-output/
+# Keep a small set of demo artifacts so deployed dashboards have alerts + charts.
+output/*
+!output/alerts_windows.csv
+!output/visualizations/
+!output/visualizations/**
 
 # Local caches
 .ipynb_checkpoints/
