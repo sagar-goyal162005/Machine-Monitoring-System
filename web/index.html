@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Maintenance Dashboard - Real-Time Monitoring</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <span class="logo-icon">🔧</span>
+            <h2>Predictive<br>Maintenance</h2>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" data-page="overview">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-page="machines">
+                <span class="nav-icon">🏭</span>
+                <span class="nav-text">Machines</span>
+            </a>
+            <a href="#" class="nav-item" data-page="alerts">
+                <span class="nav-icon">🚨</span>
+                <span class="nav-text">Alerts</span>
+            </a>
+            <a href="#" class="nav-item" data-page="analytics">
+                <span class="nav-icon">📈</span>
+                <span class="nav-text">Analytics</span>
+            </a>
+            <a href="#" class="nav-item" data-page="reports">
+                <span class="nav-icon">📄</span>
+                <span class="nav-text">Reports</span>
+            </a>
+            <a href="#" class="nav-item" data-page="settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Settings</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="status-indicator">
+                <span class="status-dot active"></span>
+                <span>System Online</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="page-title">Real-Time Dashboard</h1>
+                <p class="page-subtitle" id="overviewFactoryFilter">Monitor machine health in real-time - Viewing: All Factories</p>
+            </div>
+            <div class="header-right">
+                <div class="factory-selector" style="margin-right: 1rem; position: relative;">
+                    <div id="factorySelect" class="custom-select" onclick="toggleFactoryDropdown()">
+                        <div class="select-selected">All Factories</div>
+                        <div class="select-arrow">▼</div>
+                        <div class="select-items" id="factoryOptions" style="display: none;">
+                            <div data-value="" class="select-item active">All Factories</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-refresh" onclick="refreshData()">
+                    <span class="refresh-icon">🔄</span>
+                    Refresh
+                </button>
+                <div class="user-profile" id="userProfile" style="cursor: pointer; position: relative;">
+                    <span class="user-avatar">👤</span>
+                    <span class="user-name">Admin</span>
+                    <div id="userDropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 200px; z-index: 1000;">
+                        <div style="padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+                            <div style="font-weight: 600; color: #1f2937;">Administrator</div>
+                            <div style="font-size: 0.85rem; color: #6b7280;">admin@greenbharat.com</div>
+                        </div>
+                        <div style="padding: 0.5rem;">
+                            <a href="#" onclick="showSettingsFromMenu(); return false;" style="display: block; padding: 0.75rem; color: #374151; text-decoration: none; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">⚙️ Settings</a>
+                            <a href="#" onclick="showReportsFromMenu(); return false;" style="display: block; padding: 0.75rem; color: #374151; text-decoration: none; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">📄 Reports</a>
+                            <a href="#" onclick="exportDashboard(); return false;" style="display: block; padding: 0.75rem; color: #374151; text-decoration: none; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">📥 Export Data</a>
+                            <div style="border-top: 1px solid #e5e7eb; margin: 0.5rem 0;"></div>
+                            <a href="#" onclick="showAbout(); return false;" style="display: block; padding: 0.75rem; color: #374151; text-decoration: none; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">ℹ️ About</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="kpi-section">
+            <div class="kpi-card" id="kpi-machines">
+                <div class="kpi-icon machines">🏭</div>
+                <div class="kpi-content">
+                    <div class="kpi-label">Total Machines</div>
+                    <div class="kpi-value" id="total-machines">0</div>
+                    <div class="kpi-trend positive">+0% from last month</div>
+                </div>
+            </div>
+
+            <div class="kpi-card" id="kpi-readings">
+                <div class="kpi-icon readings">📊</div>
+                <div class="kpi-content">
+                    <div class="kpi-label">Total Readings</div>
+                    <div class="kpi-value" id="total-readings">0</div>
+                    <div class="kpi-trend positive">Real-time monitoring</div>
+                </div>
+            </div>
+
+            <div class="kpi-card critical" id="kpi-critical">
+                <div class="kpi-icon critical">🔥</div>
+                <div class="kpi-content">
+                    <div class="kpi-label">Critical Alerts</div>
+                    <div class="kpi-value" id="critical-alerts">0</div>
+                    <div class="kpi-trend negative" id="critical-trend">Needs attention</div>
+                </div>
+            </div>
+
+            <div class="kpi-card warning" id="kpi-warnings">
+                <div class="kpi-icon warning">⚠️</div>
+                <div class="kpi-content">
+                    <div class="kpi-label">Warnings</div>
+                    <div class="kpi-value" id="warning-alerts">0</div>
+                    <div class="kpi-trend neutral" id="warning-trend">Monitor closely</div>
+                </div>
+            </div>
+
+            <div class="kpi-card success" id="kpi-health">
+                <div class="kpi-icon success">💚</div>
+                <div class="kpi-content">
+                    <div class="kpi-label">System Health</div>
+                    <div class="kpi-value" id="system-health">0%</div>
+                    <div class="kpi-trend positive" id="health-trend">Optimal</div>
+                </div>
+            </div>
+
+            <div class="kpi-card" id="kpi-health-index">
+                <div class="kpi-icon health">🧠</div>
+                <div class="kpi-content">
+                    <div class="kpi-label">Health Index</div>
+                    <div class="kpi-value" id="health-index">0%</div>
+                    <div class="kpi-trend positive" id="health-index-trend">Healthy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <!-- Alert Distribution -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Alert Distribution</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn">📅 Week</button>
+                        <button class="chart-btn active">📆 Month</button>
+                    </div>
+                </div>
+                <canvas id="alertChart"></canvas>
+            </div>
+
+            <!-- Temperature Trends -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Temperature Trends</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn active">🌡️ Real-time</button>
+                    </div>
+                </div>
+                <div id="tempChart"></div>
+            </div>
+
+            <!-- Vibration Analysis -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Vibration Analysis</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn active">📳 Live</button>
+                    </div>
+                </div>
+                <div id="vibrationChart"></div>
+            </div>
+
+            <!-- Machine Status -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Machine Status Overview <span id="machineStatusFactoryFilter" style="font-size: 0.85rem; color: #6b7280; font-weight: normal;">- All Factories</span></h3>
+                    <div class="chart-actions">
+                        <span class="status-badge critical">Critical: <span id="status-critical">0</span></span>
+                        <span class="status-badge warning">Warning: <span id="status-warning">0</span></span>
+                        <span class="status-badge success">Normal: <span id="status-normal">0</span></span>
+                    </div>
+                </div>
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Alerts Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>🚨 Recent Critical Alerts</h3>
+                <div class="table-actions">
+                    <input type="text" placeholder="Filter alerts..." class="filter-input">
+                    <button class="export-btn">📥 Export</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table" id="alertsTable">
+                    <thead>
+                        <tr>
+                            <th>Machine ID</th>
+                            <th>Time</th>
+                            <th>Temperature</th>
+                            <th>Vibration</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertsTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Live Activity Feed -->
+        <div class="activity-feed">
+            <div class="feed-header">
+                <h3>🔔 Live Activity Feed</h3>
+                <span class="live-indicator">
+                    <span class="pulse"></span>
+                    LIVE
+                </span>
+            </div>
+            <div class="feed-content" id="activityFeed">
+                <!-- Activity items will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div class="insights-grid">
+            <div class="insight-card">
+                <h3>🧠 Predictive Failure Timer</h3>
+                <div class="insight-value" id="failureTimerValue">--</div>
+                <div class="insight-note" id="failureTimerNote">We estimate potential failure time based on trend slope.</div>
+            </div>
+            <div class="insight-card">
+                <h3>⚠️ Automatic Failure Risk</h3>
+                <div id="failureRiskList" class="risk-list">Loading...</div>
+            </div>
+            <div class="insight-card">
+                <h3>🛠️ Maintenance Recommendations</h3>
+                <ul id="recommendationList" class="recommendation-list"></ul>
+            </div>
+        </div>
+
+        <!-- Analytics Page (Hidden by default) -->
+        <div id="analyticsPage" style="display: none;">
+            <!-- Analytics Header -->
+            <div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="font-size: 2rem; color: #1f2937; margin: 0;">Analytics</h2>
+                    <p id="analyticsFactoryFilter" style="font-size: 0.9rem; color: #6b7280; margin: 0.5rem 0 0 0;">Viewing: All Factories</p>
+                </div>
+            </div>
+
+            <!-- Chart.js Library Check -->
+            <script>
+                if (typeof Chart === 'undefined') {
+                    console.error('❌ Chart.js not available!');
+                    document.body.innerHTML += '<div style="background: #fee2e2; color: #991b1b; padding: 1rem; margin: 1rem; border-radius: 8px;"><strong>Error:</strong> Chart.js library not loaded!</div>';
+                } else {
+                    console.log('✅ Chart.js available:', Chart.version);
+                }
+                if (typeof ApexCharts === 'undefined') {
+                    console.warn('⚠️ ApexCharts not available (this is expected if not needed)');
+                } else {
+                    console.log('✅ ApexCharts available');
+                }
+            </script>
+
+            <!-- Analytics KPI Cards -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                <!-- Average Temperature -->
+                <div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="font-size: 3rem;">🌡️</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.25rem;">Average Temperature</div>
+                            <div style="font-size: 2rem; font-weight: 700; line-height: 1;">
+                                <span id="analyticsAvgTemp">--</span><span style="font-size: 1.2rem;">°C</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Average Vibration -->
+                <div style="background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="font-size: 3rem;">📳</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.25rem;">Average Vibration</div>
+                            <div style="font-size: 2rem; font-weight: 700; line-height: 1;">
+                                <span id="analyticsAvgVibration">--</span><span style="font-size: 1.2rem;"> mm/s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Anomaly Count -->
+                <div style="background: linear-gradient(135deg, #991b1b, #ef4444); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="font-size: 3rem;">⚠️</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.25rem;">Anomaly Count</div>
+                            <div style="font-size: 2rem; font-weight: 700; line-height: 1;" id="analyticsAnomalyCount">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Charts Grid -->
+            <div class="analytics-charts-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                <!-- Equipment Efficiency -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Equipment Efficiency</h3>
+                    </div>
+                    <div style="height: 300px; padding: 1rem; position: relative;">
+                        <canvas id="equipmentEfficiencyChart" width="400" height="300" style="display: block; max-height: 100%; width: 100% !important;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Health Score Trends -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Health Score Trends</h3>
+                    </div>
+                    <div style="height: 300px; padding: 1rem; position: relative;">
+                        <canvas id="healthScoreTrendsChart" width="400" height="300" style="display: block; max-height: 100%; width: 100% !important;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Alert Type Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Alert Type Distribution</h3>
+                    </div>
+                    <div style="height: 300px; padding: 1rem; position: relative;">
+                        <canvas id="alertTypeDistributionChart" width="400" height="300" style="display: block; max-height: 100%; width: 100% !important;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Risk Score Gauge -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Risk Score</h3>
+                    </div>
+                    <div id="riskScoreGaugeChart" style="min-height: 300px;"></div>
+                </div>
+            </div>
+
+            <!-- Analytics Insights -->
+            <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; color: #1f2937;">🧠 AI-Powered Insights</h3>
+                <div id="analyticsInsights" style="display: grid; gap: 1rem;">
+                    <!-- Insights will be added dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Page (Hidden by default) -->
+        <div class="reports-page" id="reportsPage" style="display: none;">
+            <div class="report-header">
+                <h2>📄 Maintenance Analysis Report</h2>
+                <p class="report-subtitle">Comprehensive system health and anomaly detection analysis</p>
+            </div>
+
+            <!-- Executive Summary -->
+            <div class="report-section">
+                <h3 class="section-title">📊 Executive Summary</h3>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-label">Total Readings</div>
+                        <div class="summary-value" id="report-total-readings">0</div>
+                    </div>
+                    <div class="summary-card critical-card">
+                        <div class="summary-label">Critical Alerts</div>
+                        <div class="summary-value" id="report-critical">0</div>
+                    </div>
+                    <div class="summary-card warning-card">
+                        <div class="summary-label">Warning Alerts</div>
+                        <div class="summary-value" id="report-warnings">0</div>
+                    </div>
+                    <div class="summary-card success-card">
+                        <div class="summary-label">Normal Readings</div>
+                        <div class="summary-value" id="report-normal">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualizations Grid -->
+            <div class="report-section">
+                <h3 class="section-title">📈 Analysis Visualizations</h3>
+                <div class="visualizations-grid">
+                    <div class="viz-card">
+                        <h4>Temperature Distribution</h4>
+                        <img src="/api/visualization/temperature_distribution.png" alt="Temperature Distribution" class="viz-image">
+                    </div>
+                    <div class="viz-card">
+                        <h4>Vibration Analysis</h4>
+                        <img src="/api/visualization/vibration_analysis.png" alt="Vibration Analysis" class="viz-image">
+                    </div>
+                    <div class="viz-card">
+                        <h4>Alert Timeline</h4>
+                        <img src="/api/visualization/alert_timeline.png" alt="Alert Timeline" class="viz-image">
+                    </div>
+                    <div class="viz-card">
+                        <h4>Anomaly Heatmap</h4>
+                        <img src="/api/visualization/anomaly_heatmap.png" alt="Anomaly Heatmap" class="viz-image">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Alerts Section -->
+            <div class="report-section">
+                <h3 class="section-title">⚠️ Warning Vibration Alerts</h3>
+                <div class="alerts-table-wrapper">
+                    <table class="report-table" id="reportWarningTable">
+                        <thead>
+                            <tr>
+                                <th>Machine ID</th>
+                                <th>Timestamp</th>
+                                <th>Temperature (K)</th>
+                                <th>Vibration (RPM)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportWarningBody">
+                            <tr><td colspan="5" class="loading">Loading warning alerts...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader">
+            <div class="spinner"></div>
+            <p>Loading dashboard data...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="static/js/charts.js"></script>
+    <script src="static/js/main.js"></script>
+</body>
+</html>
